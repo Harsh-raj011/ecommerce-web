@@ -1,1 +1,41 @@
+name: CI/CD Pipeline
 
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: '14' # Specify your Node.js version
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Run tests
+        run: npm test
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Install IBM Cloud CLI
+        run: |
+          curl -sL https://ibm.biz/idt-installer | bash
+          ibmcloud login --apikey ${{ secrets.IBM_CLOUD_API_KEY }} -r us-south
+
+      - name: Deploy to IBM Cloud
+        run: |
+          ibmcloud cf push your-app-name -f manifest.yml
